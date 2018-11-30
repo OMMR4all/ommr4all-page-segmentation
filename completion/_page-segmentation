@@ -1,0 +1,79 @@
+#compdef page-segmentation
+
+typeset -A opt_args
+local context state line
+
+local function _page-segmentation-actions() {
+    local actions=(
+	'train:train the neural network'
+	'predict:Predict a result with the neural network'
+	'create-dataset-file: Create a dataset file'
+	'compute-image-normalizations:Compute image normalizations'
+    )
+    _describe action actions
+}
+
+local function _page-segmentation-action-arguments() {
+    case ${words[1]} in
+	train)
+	    _arguments \
+		'--l_rate[learning rate (1e-3)]:learning rate' \
+		'--l_rate_drop_factor[drop factor (0.1)]:drop factor' \
+		'--n_classes[number of classes (4)]:number of classes' \
+		'--target_line_height[target line height (6)]:line height' \
+		'--output[output dir (created if not exisiting)]:output dir:_path_files -/' \
+		'--n_iter[number of iterations]:iterations' \
+		'--early_stopping_test_interval[(100)]:interval' \
+		'--early_stopping_max_keep[(10)]:interval' \
+		'--early_stopping_max_l_rate_drops[(3)]:interval' \
+		'--early_stopping_on_accuracy' \
+		'--split_file[Load splits from a json file]:split file:_files -g "*.json"' \
+		'--train[training data json files]:training files:_files -g "*.json"' \
+		'--test[Data used for early stopping]:test files:_files -g "*.json"' \
+		'--eval[evaluation data json files]:evaluation files:_files -g "*.json"' \
+		'--display[Display training progress each display interations (100)]:iterations'
+	    ;;
+
+	predict)
+	    _arguments \
+		'--load[Model to load]:model dir:_path_files -/' \
+		'--output[output dir (created if not exisiting)]:output dir:_path_files -/' \
+		'--binary[directory name of the binary images]:output dir:_path_files -/' \
+		'--images[directory name of the images on which to train]:image dir:_path_files -/' \
+		'--norm[directory name of the norms on which to train]:image dir:_path_files -/' \
+		'--char_height[Average height of character m or n, ...]:char height' \
+		'--target_line_height[Scale the data images so that the line height matches this value (must be the same as in training)]:line height' \
+		'--keep-low-res[keep low resolution prediction instead of rescaling output to orignal image size]'
+	    ;;
+
+	create-dataset-file)
+	    _arguments \
+		'--seed:seed' \
+		'--dataset_path:dataset path:_path_files -/' \
+		'--output_file:output file:_files' \
+		'--char_height_of_n[Average height of character m or n, ...]:char height' \
+		'--n_eval[For final model evaluation]:number' \
+		'--n_train[For training]:number' \
+		'--n_test[For picking the best model]:number' \
+		'--binary_dir[directory name of the binary images]:binary dir:_path_files -/' \
+		'--images_dir[directory name of the images on which to train]:images dir:_path_files -/' \
+		'--masks_dir[directory name of the masks]:masks dir:_path_files -/' \
+		'--masks_postfix[Postfix to distinguish masks and images]:postfix' \
+		'--normalizations_dir:normalizations dir:_path_files -/' \
+		'--verify_filenames[File names must match]' 
+	    ;;
+
+	compute-image-normalizations)
+	    _arguments \
+		'--input_dir[Image directory to process]:input dir:_path_files -/' \
+		'--cut_left[left cut (0.05)]:cut left (float)' \
+		'--cut_right[right cut (0.05)]:cut right (float)' \
+		'--inverse' \
+		'--output_dir[The output dir for the info files]:output dir:_path_files -/'
+	    ;;
+    esac
+}
+
+_arguments \
+    "1:Action:_page-segmentation-actions"\
+    '*::arguments:_page-segmentation-action-arguments'
