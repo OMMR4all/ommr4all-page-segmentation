@@ -1,28 +1,13 @@
-from typing import Callable, Union, List, Tuple
-
 import tensorflow as tf
 import tensorflow.contrib.cudnn_rnn as cudnn_rnn
-from tensorflow.python.framework.ops import Tensor
-
-from .md_lstm import horizontal_standard_lstm
-
-Tensors = Union[Tensor, List[Tensor]]
+from .md_lstm import *
 
 
 def model(input, n_classes):
-    return model_fcn_skip(input, n_classes)
+    return model_FCN_skip(input, n_classes)
 
 
-def model_by_name(name: str) -> Callable[[Tensors, int], Tensors]:
-    return {
-        "fcn_skip": model_fcn_skip,
-        "default": model_fcn_skip,
-        "fcn": model_fcn,
-        "lstm": model_2dlstm,
-    }[name]
-
-
-def model_fcn_skip(input: Tensors, n_classes: int) -> Tensors:
+def model_FCN_skip(input, n_classes):
     # input = tf.image.resize_bilinear(input, size)
 
     # encoder
@@ -54,7 +39,7 @@ def model_fcn_skip(input: Tensors, n_classes: int) -> Tensors:
     return logits
 
 
-def model_fcn(input: Tensors, n_classes: int) -> Tensors:
+def model_FCN(input, n_classes):
     # input = tf.image.resize_bilinear(input, size)
 
     # encoder
@@ -87,7 +72,7 @@ def get_lstm_cell(num_hidden, reuse_variables=False):
     return cudnn_rnn.CudnnCompatibleLSTMCell(num_hidden, reuse=reuse_variables)
 
 
-def model_2dlstm(input: Tensors, n_classes: int) -> Tuple[Tensor, Tensor, Tensor]:
+def model_2dlstm(input, n_classes):
     # input = tf.image.resize_bilinear(input, size)
 
     # encoder
@@ -107,8 +92,8 @@ def model_2dlstm(input: Tensors, n_classes: int) -> Tuple[Tensor, Tensor, Tensor
     upscaled = tf.image.resize_images(rnn_out, tf.shape(input)[1:3])
 
     # prediction
-    logits: Tensor = tf.layers.conv2d(upscaled, n_classes, (1, 1), (1, 1), name="logits")
-    probs: Tensor = tf.nn.softmax(logits, -1, name="probabilities")
-    prediction: Tensor = tf.argmax(logits, axis=-1, name="prediction")
+    logits = tf.layers.conv2d(upscaled, n_classes, (1, 1), (1, 1), name="logits")
+    probs = tf.nn.softmax(logits, -1, name="probabilities")
+    prediction = tf.argmax(logits, axis=-1, name="prediction")
 
     return prediction, logits, probs
