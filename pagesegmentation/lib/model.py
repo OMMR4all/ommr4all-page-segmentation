@@ -113,12 +113,14 @@ def model_fcn_skip(input: Tensors, n_classes: int):
 def unet_with_mobile_net_encoder(input: Tensors, n_classes:int):
     input_image = input[0]
     input_binary = input[1]
-    rgb_input = GraytoRgb()(input_image)
-
-    rgb_input = tf.keras.applications.mobilenet_v2.preprocess_input(rgb_input * 255)
+    if input_image.shape != 3:
+        input_image = GraytoRgb()(input_image)
+    # preprocess to default mobile net input
+    input_image = tf.keras.layers.Lambda(lambda x: x * 255 / 127.5 - 1)(input_image)
+    #input_image = tf.keras.applications.mobilenet_v2.preprocess_input(input_image * 255)
     padding = tf.keras.layers.Lambda(lambda x: calculate_padding(x))(input_image)
 
-    padded = tf.keras.layers.Lambda(pad)([rgb_input, padding])
+    padded = tf.keras.layers.Lambda(pad)([input_image, padding])
 
     base_model = tf.keras.applications.MobileNetV2(weights='imagenet', include_top=False, input_tensor=padded)
     # Use the activations of these layers
@@ -173,8 +175,10 @@ def unet_with_mobile_net_encoder(input: Tensors, n_classes:int):
 def rest_net_fcn(input: Tensors, n_classes:int):
     input_image = input[0]
     input_binary = input[1]
-    input_image = GraytoRgb()(input_image)
-    input_image = tf.keras.applications.resnet50.preprocess_input(input_image * 255)
+    if input_image.shape != 3:
+        input_image = GraytoRgb()(input_image)
+    #input_image = tf.keras.applications.resnet50.preprocess_input(input_image * 255)
+    input_image = tf.keras.layers.Lambda(lambda x: x * 255 / 127.5 - 1)(input_image)
 
     padding = tf.keras.layers.Lambda(lambda x: calculate_padding(x))(input_image)
     padded = tf.keras.layers.Lambda(pad)([input_image, padding])

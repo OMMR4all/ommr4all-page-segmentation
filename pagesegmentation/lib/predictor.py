@@ -26,7 +26,6 @@ class PredictSettings:
     high_res_output: bool = False
     color_map: dict = None
     post_process: Optional[List[Callable[[np.ndarray, SingleData], np.ndarray]]] = None
-    n_architecture: str = 'default'  # Do not change
 
 
 class Predictor:
@@ -35,7 +34,7 @@ class Predictor:
         self.network = network
 
         if not network:
-            self.network = Network("test", model_by_name(self.settings.n_architecture),
+            self.network = Network("Predict",
                                    n_classes=self.settings.n_classes if not self.settings.color_map else len(self.settings.color_map)
                                    , model=os.path.abspath(self.settings.network))
         if settings.output:
@@ -78,7 +77,6 @@ class Predictor:
             inv_binary = data.binary
 
             if self.settings.high_res_output:
-                print('asdsd')
                 color_mask = resize(color_mask, data.original_shape, order=0)
                 foreground = resize(foreground, data.original_shape) / 255
                 inv_binary = resize(inv_binary, data.original_shape, order=0)

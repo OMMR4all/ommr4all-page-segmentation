@@ -1,5 +1,25 @@
 import tensorflow as tf
-from tensorflow.keras.optimizers import Optimizer
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+def loss_by_name(name: str):
+    loss_func = {
+        "categorical_crossentropy": loss,
+        "default": loss,
+        "jacard_coef_loss": jacard_coef_loss,
+        "dice_coef_loss": dice_coef_loss,
+        "categorical_hinge": categorical_hinge,
+        "dice_and_categorical": dice_and_categorical,
+    }[name]
+    if loss_func is None:
+        logger.info('Fallback to categorical_crossentropy loss')
+        return loss
+    else:
+        logger.info('Loss function set to: {}'.format(name))
+
+    return loss_func
 
 
 def loss(y_true, y_pred):
