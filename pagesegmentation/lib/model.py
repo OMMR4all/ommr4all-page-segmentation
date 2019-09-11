@@ -421,6 +421,7 @@ def ResUNet(input: Tensors, n_classes: int):
         return x
 
     f = [16, 32, 64, 128, 256]
+    f = [x // 2 for x in f]
     input_image = input[0]
     input_binary = input[1]
     padding = tf.keras.layers.Lambda(lambda x: calculate_padding(x))(input_image)

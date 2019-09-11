@@ -51,7 +51,7 @@ class Network:
                         ])
 
         from pagesegmentation.lib.metrics import accuracy, loss, dice_coef, \
-            fgpa, fgpl, jacard_coef, dice_coef_loss, jacard_coef_loss
+            fgpa, fgpl, jacard_coef, dice_coef_loss, jacard_coef_loss, categorical_hinge, dice_and_categorical
         if model and continue_training:
             self.model = tf.keras.models.load_model(model, custom_objects={'loss': loss, 'accuracy': accuracy,
                                                                            'fgpa': fgpa, 'fgpl': fgpl,
@@ -61,8 +61,8 @@ class Network:
                                                                            'jacard_coef_loss': jacard_coef_loss})
         else:
             self.model = model_constructor([self.input, self.binary], n_classes)
-            optimizer = tf.keras.optimizers.Adam(lr=l_rate)
-            self.model.compile(optimizer=optimizer, loss=loss(n_classes), metrics=[accuracy, fgpa(self.binary),
+            optimizer = tf.keras.optimizers.Adam(lr=l_rate, clipnorm=1)
+            self.model.compile(optimizer=optimizer, loss=dice_and_categorical, metrics=[accuracy, fgpa(self.binary),
                                                                         jacard_coef, dice_coef])
             if model:
                 self.model.load_weights(model)
@@ -149,16 +149,15 @@ class Network:
         test_gen = self.create_dataset_inputs(test_data, data_augmentation=False)
         logger.info(self.model.summary)
         checkpoint = tf.keras.callbacks.ModelCheckpoint(os.path.join(output_dir, best_model_name + '.h5'),
-                                                        monitor='val_accuracy',
+                                                        monitor='val_loss',
                                                         verbose=1,
                                                         save_best_only=True,
                                                         save_weights_only=True)
         callbacks.append(checkpoint)
 
         if early_stopping:
-            early_stop_cb = tf.keras.callbacks.EarlyStopping(monitor='val_accuracy',
+            early_stop_cb = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
                                                              patience=early_stopping_interval,
-                                                             min_delta=0.0005,
                                                              verbose=1, mode='auto',
                                                              restore_best_weights=True)
             callbacks.append(early_stop_cb)
@@ -229,4 +228,6 @@ class Network:
         prob = softmax(logit, -1)
         pred = np.argmax(logit, -1)
         return logit, prob, pred
+
+
 

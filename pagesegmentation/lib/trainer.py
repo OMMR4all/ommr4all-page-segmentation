@@ -77,15 +77,17 @@ class Trainer:
 if __name__ == "__main__":
     from pagesegmentation.lib.dataset import DatasetLoader
     from pagesegmentation.scripts.generate_image_map import load_image_map_from_file
-    image_map = load_image_map_from_file('/home/alexander/Bilder/datenset2/image_map.json')
-    dataset_loader = DatasetLoader(6, color_map=image_map)
+    import os
+    dataset_dir = '/home/alexander/Dokumente/virutal_stafflines/'
+    image_map = load_image_map_from_file(os.path.join(dataset_dir, 'image_map.json'))
+    dataset_loader = DatasetLoader(8, color_map=image_map)
     print(dataset_loader.color_map)
     train_data = dataset_loader.load_data_from_json(
-        ['/home/alexander/Bilder/datenset2/t.json'], "train")
+        [os.path.join(dataset_dir, 't.json')], "train")
     test_data = dataset_loader.load_data_from_json(
-        ['/home/alexander/Bilder/datenset2/t.json'], "test")
+        [os.path.join(dataset_dir, 't.json')], "test")
     eval_data = dataset_loader.load_data_from_json(
-        ['/home/alexander/Bilder/datenset2/t.json'], "eval")
+        [os.path.join(dataset_dir, 't.json')], "eval")
     settings = TrainSettings(
         n_epoch=100,
         n_classes=len(dataset_loader.color_map),
@@ -93,14 +95,14 @@ if __name__ == "__main__":
         train_data=train_data,
         validation_data=test_data,
         display=10,
-        output_dir='/home/alexander/Bilder/datenset2/',#'/home/alexander/Bilder/test_datenset/', #'/home/alexander/PycharmProjects/PageContent/pagecontent/demo/'
+        output_dir=dataset_dir,
         threads=8,
         foreground_masks=False,
         data_augmentation=True,
         tensorboard=True,
-        n_architecture='mobile_net',
+        n_architecture='ResUNet',
         early_stopping_max_l_rate_drops=5,
-        load=None#'/home/alexander/Bilder/test_datenset/best_model.hdf5'
+        load=os.path.join(dataset_dir, 'best_model.h5')
     )
     trainer = Trainer(settings)
     trainer.train()
